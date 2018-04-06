@@ -1,0 +1,104 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dashboard - pyspider</title>
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <meta name="description" content="pyspider dashboard">
+    <meta name="author" content="binux">
+      <link rel="stylesheet" href="{% static 'spider/css/bootstrap.min.css' %}">
+      <link rel="stylesheet" href="{% static 'spider/css/bootstrap-editable.css' %}">
+      <link rel="stylesheet" href="{% static 'spider/css/sortable-theme-bootstrap.css' %}">
+      <link rel="stylesheet" href="{% static 'spider/css/index.min.css' %}">
+
+      <script src="{% static 'spider/js/jquery.min.js' %}"></script>
+      <link rel="stylesheet" href="{% static 'spider/css/bootstrap-toggle.min.css' %}">
+      <script src="{% static 'spider/js/bootstrap-toggle.min.js' %}"></script>
+  </head>
+
+  <body>
+    <header>
+      <div id="need-set-status-alert" class="alert alert-danger alert-dismissible" style="display:none;" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        Project is not started, please set status to RUNNING or DEBUG.
+      </div>
+      <h1 class="text-center">爬虫管理</h1>
+    </header>
+    <section>
+      <table class="table sortable-theme-bootstrap projects">
+        <thead>
+          <tr>
+            <th>项目编号</th>
+            <th>项目名称</th>
+            <th>运行状态</th>
+            <th data-type="num">网站类型</th>
+            <th data-type="num">景区类型</th>
+            <th class="project-progress" data-type="num">数据来源</th>
+            <th data-type="num">创建者</th>
+            <th data-type="num">执行操作</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for project in project_list %}
+          <tr data-name="{{ project.project_id }}">
+            <td class="project-group"><span class="editable editable-click editable-empty">{{ project.project_id }}</span></td>
+            <td class="project-name"><span>{{ project.name }}</span></td>
+            <td class="project-status">
+                {% ifequal project.status 'stop' %}
+                    <input id="toggle-trigger" type="checkbox" onchange="toggleChange({{ project.project_id }})" data-toggle="toggle" data-on="开启" data-off="关闭" data-onstyle="success" data-offstyle="danger">
+                {% else %}
+                    <input id="toggle-trigger" type="checkbox" onchange="toggleChange({{ project.project_id }})" checked data-toggle="toggle" data-on="开启" data-off="关闭" data-onstyle="success" data-offstyle="danger">
+                {% endifequal %}
+            </td>
+            <td class="project-rate" data-value="1"><span class="editable editable-click">{{ project.website }}</span></td>
+            <td class="project-time">
+              <span>{{ project.region }}</span>
+            </td>
+            <td class="project-progress progress-1h">
+              <span>{{ project.type }}</span>
+            </td>
+            <td class="project-progress progress-all">
+              <span>{{ project.editor }}</span>
+            </td>
+            <td class="project-actions" data-value="1522999827.515615">
+              <button class="project-run btn btn-default btn-xs" onclick="Run({{ project.project_id }})">运行</button>
+              <a class="btn btn-default btn-xs" target="_blank" href="/tasks?project=20180406153022">Active Tasks</a>
+              <a class="btn btn-default btn-xs" target="_blank" href="/results?project=20180406153022">Results</a>
+            </td>
+          </tr>
+        {% empty %}
+            <td>当前没有爬虫项目可运行!!!</td>
+        {% endfor %}
+        </tbody>
+      </table>
+    </section>
+    <script src="{% static 'spider/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'spider/js/bootstrap-editable.min.js' %}"></script>
+    <script src="{% static 'spider/js/sortable.min.js' %}"></script>
+    <script src="{% static 'spider/js/vue.min.js' %}"></script>
+    <script>
+        function toggleChange(project_id) {
+            project_status = '';
+            if($('#toggle-trigger').prop("checked")){
+                project_status = 'start';
+            }else{
+                project_status = 'stop';
+            }
+            $.get("/spider/status", { status: project_status,id:project_id } );
+            {#location.reload();#}
+        }
+        function Run(project_id) {
+            if($('#toggle-trigger').prop("checked")){
+                $.get("/spider/run", { id:project_id } );
+            }else{
+                alert('运行爬虫项目之前,请先开启项目!!!')
+            }
+        }
+    </script>
+  </body>
+</html>
+<!-- vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8 syntax=htmldjango: -->
